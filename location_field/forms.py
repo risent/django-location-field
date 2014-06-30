@@ -1,16 +1,15 @@
 from django.forms import fields
-
-
+from django.contrib.gis.geos import Point
 from location_field.widgets import LocationWidget
 
 
 class PlainLocationField(fields.CharField):
-    def __init__(self, based_fields=None, zoom=None, suffix='', default=None,
-                 widget=LocationWidget, *args, **kwargs):
+    def __init__(self, based_fields=None, zoom=None, default=None, widget=LocationWidget,
+                 *args, **kwargs):
         kwargs['initial'] = default
 
         self.widget = widget(based_fields=based_fields, zoom=zoom,
-                                     suffix=suffix, **kwargs)
+                                     **kwargs)
 
         dwargs = {
             'required': True,
@@ -26,3 +25,9 @@ class PlainLocationField(fields.CharField):
                 dwargs[attr] = kwargs[attr]
 
         super(PlainLocationField, self).__init__(*args, **dwargs)
+
+
+class LocationField(PlainLocationField):
+    def clean(self, value):
+        lat, lng = value.split(',')
+        return Point(float(lng), float(lat))
